@@ -8,11 +8,22 @@ function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/transactions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTransactions(res.data);
+
+      if (!token) {
+        alert("You are not logged in. Please login again.");
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/transactions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTransactions(res.data);
+      } catch (err) {
+        console.error("Dashboard fetch error:", err.response?.data || err.message);
+      }
     };
+
     fetchData();
   }, []);
 

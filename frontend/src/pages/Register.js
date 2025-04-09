@@ -8,9 +8,10 @@ function Register() {
   const register = async () => {
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/register`, { email, password });
-      alert("User registered");
+      alert("User registered. Please login.");
     } catch (err) {
       alert("Registration failed");
+      console.error("Register error:", err.response?.data || err.message);
     }
   };
 
