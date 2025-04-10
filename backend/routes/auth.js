@@ -4,6 +4,28 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const router = express.Router();
 
+// ✅ Check DB Connection on Startup
+pool.query('SELECT NOW()')
+  .then(res => console.log("✅ DB Connection Successful:", res.rows[0]))
+  .catch(err => console.error("❌ DB Connection FAILED:", err.stack));
+
+// ✅ Test Route - Useful for Debugging in Render
+router.get('/test', async (req, res) => {
+  try {
+    const dbTime = await pool.query('SELECT NOW()');
+    const testToken = jwt.sign({ test: true }, process.env.JWT_SECRET || 'fallback', { expiresIn: '1m' });
+
+    res.json({
+      message: '✅ API and DB working!',
+      db_time: dbTime.rows[0],
+      jwt_sample: testToken
+    });
+  } catch (err) {
+    console.error("🧨 Test Route Error:", err.stack);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ✅ REGISTER ROUTE
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
@@ -15,8 +37,9 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    // check if user already exists
     const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    console.log("🔍 Existing user check result:", existing.rows);
+
     if (existing.rows.length > 0) {
       console.log("⚠️ User already exists:", email);
       return res.status(409).json({ error: 'User already exists' });
@@ -27,11 +50,13 @@ router.post('/register', async (req, res) => {
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
-    console.log("✅ User registered:", email);
+    console.log("✅ Insert query successful for:", email);
+
     res.status(201).json({ message: 'User registered successfully' });
 
   } catch (err) {
     console.error("🔥 REGISTER ERROR:", err.message);
+    console.error("🔥 STACK TRACE:", err.stack);
     res.status(500).json({ error: 'Registration failed. Please try again later.' });
   }
 });
@@ -71,10 +96,10 @@ router.post('/login', async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error("🔥 STACK TRACE:", err.stack); // ⬅️ Use the full error object
-    res.status(500).json({ error: err.message || 'Unknown error' });
+    console.error("🔥 LOGIN ERROR:", err.message);
+    console.error("🔥 STACK TRACE:", err.stack);
+    res.status(500).json({ error: err.message || 'Login failed. Please try again later.' });
   }
-  
 });
 
 module.exports = router;
