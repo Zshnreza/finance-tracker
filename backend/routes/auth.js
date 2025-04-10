@@ -4,29 +4,12 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const router = express.Router();
 
-// ✅ Check DB Connection on Startup
+// Test DB Connection
 pool.query('SELECT NOW()')
   .then(res => console.log("✅ DB Connection Successful:", res.rows[0]))
   .catch(err => console.error("❌ DB Connection FAILED:", err.stack));
 
-// ✅ Test Route - Useful for Debugging in Render
-router.get('/test', async (req, res) => {
-  try {
-    const dbTime = await pool.query('SELECT NOW()');
-    const testToken = jwt.sign({ test: true }, process.env.JWT_SECRET || 'fallback', { expiresIn: '1m' });
-
-    res.json({
-      message: '✅ API and DB working!',
-      db_time: dbTime.rows[0],
-      jwt_sample: testToken
-    });
-  } catch (err) {
-    console.error("🧨 Test Route Error:", err.stack);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ REGISTER ROUTE
+// ✅ REGISTER
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
   console.log("📥 Register Request Body:", req.body);
@@ -38,7 +21,7 @@ router.post('/register', async (req, res) => {
 
   try {
     const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    console.log("🔍 Existing user check result:", existing.rows);
+    console.log("🔍 Existing user check:", existing.rows);
 
     if (existing.rows.length > 0) {
       console.log("⚠️ User already exists:", email);
@@ -46,28 +29,26 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query(
+    const result = await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
-    console.log("✅ Insert query successful for:", email);
 
+    console.log("✅ Inserted user:", result.rowCount);
     res.status(201).json({ message: 'User registered successfully' });
 
   } catch (err) {
-    console.error("🔥 REGISTER ERROR:", err.message);
-    console.error("🔥 STACK TRACE:", err.stack);
+    console.error("🔥 FULL REGISTER ERROR:", err.stack);
     res.status(500).json({ error: 'Registration failed. Please try again later.' });
   }
 });
 
-// ✅ LOGIN ROUTE
+// ✅ LOGIN
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log("📥 Login Request:", req.body);
 
   if (!email || !password) {
-    console.log("❌ Missing login credentials");
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
@@ -96,9 +77,8 @@ router.post('/login', async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error("🔥 LOGIN ERROR:", err.message);
-    console.error("🔥 STACK TRACE:", err.stack);
-    res.status(500).json({ error: err.message || 'Login failed. Please try again later.' });
+    console.error("🔥 LOGIN ERROR:", err.stack);
+    res.status(500).json({ error: 'Login failed. Please try again later.' });
   }
 });
 

@@ -8,12 +8,14 @@ const transactionRoutes = require('./routes/transactions');
 const app = express();
 
 // ✅ MIDDLEWARE
-app.use(cors());
-app.use(express.json()); // Required to parse JSON bodies
+app.use(cors({
+  origin: 'http://localhost:3000',
+}));
+app.use(express.json());
 
-// ✅ HEALTH CHECK ROUTE
-app.get('/', (req, res) => {
-  res.send('✅ Server is up and running!');
+// ✅ TEST ROUTE
+app.get('/api/test', (req, res) => {
+  res.send('✅ API is live and working!');
 });
 
 // ✅ ROUTES
@@ -22,6 +24,4 @@ app.use('/api/transactions', transactionRoutes);
 
 // ✅ START SERVER
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
