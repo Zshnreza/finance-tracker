@@ -71,9 +71,10 @@ router.post('/login', async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error("🔥 LOGIN ERROR:", err.message);
-    res.status(500).json({ error: 'Login failed. Please try again later.' });
+    console.error("🔥 REGISTER ERROR:", err); // ⬅️ Use the full error object
+    res.status(500).json({ error: err.message });
   }
+  
 });
 
 module.exports = router;
