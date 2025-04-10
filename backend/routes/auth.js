@@ -71,8 +71,8 @@ router.post('/login', async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error("🔥 REGISTER ERROR:", err); // ⬅️ Use the full error object
-    res.status(500).json({ error: err.message });
+    console.error("🔥 STACK TRACE:", err.stack); // ⬅️ Use the full error object
+    res.status(500).json({ error: err.message || 'Unknown error' });
   }
   
 });
