@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -8,19 +7,14 @@ const transactionRoutes = require('./routes/transactions');
 
 const app = express();
 
-// ✅ CORS Configuration
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://finance-tracker-l8gx.onrender.com'],
-  credentials: true
-}));
+// ✅ MIDDLEWARE
+app.use(cors());
+app.use(express.json());  // 🟢 THIS IS REQUIRED BEFORE ROUTES
 
-// ✅ Body parser
-app.use(express.json());
-
-// ✅ Routes
+// ✅ ROUTES
 app.use('/api', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 
-// ✅ Start server
+// ✅ START SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
